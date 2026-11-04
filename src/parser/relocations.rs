@@ -53,8 +53,8 @@ fn dynsym_name(
 
 
 pub fn build_imports(
-    dyn_relocs: &Vec<Reloc>,
-    plt_reloc: &Vec<Reloc>,
+    dyn_relocs: &[Reloc],
+    plt_reloc: &[Reloc],
     dynsyms: &SymbolTable<elf::FileHeader64<Endianness>>,
     endian: Endianness
 ) -> Result<HashMap<u64, String>, Error> {

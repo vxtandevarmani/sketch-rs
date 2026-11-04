@@ -5,6 +5,7 @@ fn main() -> Result<(), Error> {
     let argv: Vec<String> = std::env::args().collect();
     if argv.len() != 2 {
         eprintln!("Usage {} <BINARY>", argv[0]);
+        std::process::exit(1);
     }
 
     let path = &argv[1];

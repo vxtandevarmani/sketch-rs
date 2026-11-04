@@ -1,4 +1,4 @@
-use std::{collections::HashMap, hash::Hash};
+use std::{collections::HashMap};
 
 #[derive(Debug, Clone)]
 pub struct Reloc {
@@ -40,14 +40,14 @@ impl Binary {
         return self
             .sections
             .iter()
-            .find(|s| addr >= s.addr && addr - s.addr < s.size);
+            .find(|s| s.in_mem && addr >= s.addr && addr - s.addr < s.size);
     }
 
     pub fn function_at(&self, addr: u64) -> Option<&Function> {
         return self
             .functions
             .iter()
-            .find(|f| addr >= f.start && addr <= f.end);
+            .find(|f| addr >= f.start && addr < f.end);
     }
 
     pub fn read(&self, addr: u64, len: usize) -> Option<&[u8]> {

@@ -44,7 +44,7 @@ fn parse_fn_eh_frame(eh: &Section, data: &[u8]) -> Result<Vec<Function>, Error> 
 
 fn parse_fn_symtab(
     symtable: &SymbolTable<elf::FileHeader64<Endianness>>,
-    fntable: &mut Vec<Function>,
+    fntable: &mut [Function],
     endian: Endianness,
 ) -> Result<(), Error> {
     for sym in symtable.iter() {
@@ -64,12 +64,12 @@ fn parse_fn_symtab(
 
 pub fn parse_fns(
     table: &SymbolTable<elf::FileHeader64<Endianness>>,
-    sections: &Vec<Section>,
+    sections: &[Section],
     data: &[u8],
     endian: Endianness,
     is_stripped: bool,
 ) -> Result<Vec<Function>, Error> {
-    let eh = sections.iter().find(|s| s.name == "eh.frame");
+    let eh = sections.iter().find(|s| s.name == ".eh_frame");
     ensure!(eh.is_some(), "[-] .eh_frame is not present within binary");
     let mut out: Vec<Function> = parse_fn_eh_frame(eh.unwrap(), data)?;
 

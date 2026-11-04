@@ -45,7 +45,14 @@ pub fn load(path: &str) -> Result<Binary, Error> {
     let dyn_relocs = read_locs(&sections, ".rela.dyn", &*data_out, endian)?;
     let plt_relocs = read_locs(&sections, ".rela.plt", &*data_out, endian)?;
 
-    let imports = build_imports(&dyn_relocs, &plt_relocs, &dynsyms, endian)?;
+    let imports_out = build_imports(&dyn_relocs, &plt_relocs, &dynsyms, endian)?;
 
-    Ok(Binary::default())
+    return Ok(Binary{
+        data: data_out,
+        sections: section_out,
+        functions: function_out,
+        imports: imports_out,
+        entry: Some(entry),
+        stripped: stripped
+    });
 }
