@@ -1,16 +1,14 @@
 use anyhow::Error;
-use object::{Endianness, elf};
-use object::read::elf::SectionTable;
 use object::read::elf::SectionHeader;
+use object::read::elf::SectionTable;
+use object::{Endianness, elf};
 
 use super::structs::Section;
 
-
 pub fn parse_sect(
     table: &SectionTable<elf::FileHeader64<Endianness>>,
-    endian: Endianness
+    endian: Endianness,
 ) -> Result<Vec<Section>, Error> {
-
     let mut out: Vec<Section> = Vec::new();
     for section in table.iter() {
         let name = String::from_utf8_lossy(table.section_name(endian, section)?).into_owned();
@@ -24,8 +22,5 @@ pub fn parse_sect(
         });
     }
 
-
     return Ok(out);
-
 }
-

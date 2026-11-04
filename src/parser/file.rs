@@ -1,9 +1,9 @@
-use anyhow::{Error, ensure, Result};
-use object::{Endianness, elf::{self, ELFCLASS64, ELFMAG, EV_CURRENT}, read::elf::FileHeader};
-use super::{
-    structs::*,
-    sections::parse_sect,
-    functions::parse_fns,
+use super::{functions::parse_fns, sections::parse_sect, structs::*, relocations::*};
+use anyhow::{Error, Result, ensure};
+use object::{
+    Endianness,
+    elf::{self, ELFCLASS64, ELFMAG, EV_CURRENT},
+    read::elf::FileHeader,
 };
 
 fn validate_elf(header: &elf::FileHeader64<Endianness>, endian: Endianness) -> Result<(), Error> {
@@ -12,22 +12,21 @@ fn validate_elf(header: &elf::FileHeader64<Endianness>, endian: Endianness) -> R
 
     ensure!(ident.magic == ELFMAG, "[-] No Magic bytes");
     ensure!(ident.version == EV_CURRENT, "[-] Invalid ELF version");
-    ensure!(ty == elf::ET_EXEC || ty == elf::ET_DYN, "[-] Not an executable!");
-    ensure!(ident.class == ELFCLASS64       &&
-            ident.data == elf::ELFDATA2LSB  &&
-            header.e_machine(endian) == elf::EM_X86_64,
-            "[-] Not X86_64 Little Endian"
+    ensure!(
+        ty == elf::ET_EXEC || ty == elf::ET_DYN,
+        "[-] Not an executable!"
     );
-
-
+    ensure!(
+        ident.class == ELFCLASS64
+            && ident.data == elf::ELFDATA2LSB
+            && header.e_machine(endian) == elf::EM_X86_64,
+        "[-] Not X86_64 Little Endian"
+    );
 
     Ok(())
 }
 
-
-
 pub fn load(path: &str) -> Result<Binary, Error> {
-
     let data_out = std::fs::read(path)?;
     let elf = elf::FileHeader64::<Endianness>::parse(&*data_out)?;
     let endian = elf.endian()?;
@@ -40,8 +39,13 @@ pub fn load(path: &str) -> Result<Binary, Error> {
     let stripped = symbols.is_empty();
 
     let section_out = parse_sect(&sections, endian)?;
-    let eh = section_out.iter().find(|s| s.name == "eh.frame");
-    let function_out = parse_fns(&symbols, eh, &*&data_out, endian, stripped)?;
+
+    let function_out = parse_fns(&symbols, &section_out, &*&data_out, endian, stripped)?;
+    
+    let dyn_relocs = read_locs(&sections, ".rela.dyn", &*data_out, endian)?;
+    let plt_relocs = read_locs(&sections, ".rela.plt", &*data_out, endian)?;
+
+    let imports = build_imports(&dyn_relocs, &plt_relocs, &dynsyms, endian)?;
 
     Ok(Binary::default())
 }
