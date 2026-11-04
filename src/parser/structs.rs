@@ -52,15 +52,17 @@ impl Binary {
 
     pub fn read(&self, addr: u64, len: usize) -> Option<&[u8]> {
         let s = self.section_at(addr)?;
-        if s.offset == 0 {
-            return None;
-        }
-        let start = s.offset.checked_add(addr - s.addr)? as usize;
-        let end = start.checked_add(len)?;
-        if (addr - s.addr) + len as u64 > s.size {
+        if !s.in_file {
             return None;
         }
 
+        let rel = addr - s.addr;
+        if rel.checked_add(len as u64)? > s.size {
+            return None;
+        }
+        
+        let start = s.offset.checked_add(rel)? as usize;
+        let end = start.checked_add(len)?;
         return self.data.get(start..end);
     }
 }
