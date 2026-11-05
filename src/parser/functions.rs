@@ -1,5 +1,7 @@
 use super::structs::{Function, Section};
-use anyhow::{Context, Error, ensure};
+use anyhow::{Context, Error};
+use iced_x86::{Decoder, DecoderOptions, Instruction};
+
 use object::elf::{self};
 use object::{
     Endianness,
@@ -7,6 +9,8 @@ use object::{
 };
 
 use gimli::{BaseAddresses, CieOrFde, EhFrame, LittleEndian, UnwindSection};
+use std::collections::HashMap;
+
 
 fn parse_fn_eh_frame(eh: &Section, data: &[u8]) -> Result<Vec<Function>, Error> {
     let mut out: Vec<Function> = Vec::new();
@@ -69,13 +73,16 @@ pub fn parse_fns(
     endian: Endianness,
     is_stripped: bool,
 ) -> Result<Vec<Function>, Error> {
-    let eh = sections.iter().find(|s| s.name == ".eh_frame");
-    ensure!(eh.is_some(), "[-] .eh_frame is not present within binary");
-    let mut out: Vec<Function> = parse_fn_eh_frame(eh.unwrap(), data)?;
+    let eh = sections.iter().find(|s| s.name == ".eh_frame").context("[-] .eh_frame is not present within binary")?;
+    let text = sections.iter().find(|s| s.name == ".text").context("[-] .text is not present within binary")?;
+    
+    let mut out: Vec<Function> = parse_fn_eh_frame(eh, data)?;
 
     if !is_stripped {
         let _ = parse_fn_symtab(table, &mut out, endian)?;
     }
+
+    out.retain(|f| f.start >= text.addr && f.start <= text.addr + text.size);
 
     return Ok(out);
 }

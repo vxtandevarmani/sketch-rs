@@ -19,9 +19,9 @@ pub fn read_locs(
 
     let mut out: Vec<Reloc> = Vec::new();
 
-    let (_, sect) = sections
-        .section_by_name(endian, name.as_bytes())
-        .context("[-] could not find relocation section")?;
+    let Some((_, sect)) = sections.section_by_name(endian, name.as_bytes()) else {
+        return Ok(out);
+    };
 
     let (relas, _) = sect
         .rela(endian, data)
@@ -36,6 +36,7 @@ pub fn read_locs(
             addend: entry.r_addend(endian),
         });
     }
+
 
     return Ok(out);
 }

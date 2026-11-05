@@ -1,5 +1,5 @@
 use super::{functions::parse_fns, sections::parse_sect, structs::*, relocations::*};
-use anyhow::{Error, Result, ensure};
+use anyhow::{Context, Error, Result, ensure};
 use object::{
     Endianness,
     elf::{self, ELFCLASS64, ELFMAG, EV_CURRENT},
