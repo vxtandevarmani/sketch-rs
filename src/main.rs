@@ -11,5 +11,7 @@ fn main() -> Result<(), Error> {
     let path = &argv[1];
     let bin = parser::file::load(path)?;
 
+    println!("{}", bin.import_at(0x1040).unwrap());
+
     Ok(())
 }

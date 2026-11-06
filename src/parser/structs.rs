@@ -1,4 +1,6 @@
 use std::{collections::HashMap};
+use iced_x86::{Decoder, DecoderOptions, Instruction, Mnemonic};
+
 
 #[derive(Debug, Clone)]
 pub struct Reloc {
@@ -48,6 +50,24 @@ impl Binary {
             .functions
             .iter()
             .find(|f| addr >= f.start && addr < f.end);
+    }
+
+    pub fn import_at(&self, addr: u64) -> Option<&str> {
+        let bytes = self.read(addr, 16)?;
+        for ins in Decoder::with_ip(64, bytes, addr, DecoderOptions::NONE) {
+            match ins.mnemonic() {
+                Mnemonic::Endbr64 => {
+                    continue;
+                },
+                Mnemonic::Jmp if ins.is_ip_rel_memory_operand() => {
+                    return self.imports.get(&ins.ip_rel_memory_address()).map(|s| s.as_str());
+                },
+                _ => {
+                    return None;
+                }
+            }
+        }
+        return None;
     }
 
     pub fn read(&self, addr: u64, len: usize) -> Option<&[u8]> {

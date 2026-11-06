@@ -1,5 +1,5 @@
 // Tic-tac-toe with minimax — C port of game_r.hpp / main.cpp
-// clang -O2 tictactoe.c -o ttt   (also try -Os)
+// clang -O0 -march=x86-64 -fno-builtin -mgeneral-regs-only -fcf-protections=none tictactoe.c -o ttt   (also try -Os)
 
 #include <stdio.h>
 #include <stdlib.h>

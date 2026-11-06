@@ -47,6 +47,7 @@ pub fn load(path: &str) -> Result<Binary, Error> {
 
     let imports_out = build_imports(&dyn_relocs, &plt_relocs, &dynsyms, endian)?;
 
+
     return Ok(Binary{
         data: data_out,
         sections: section_out,
@@ -56,3 +57,5 @@ pub fn load(path: &str) -> Result<Binary, Error> {
         stripped: stripped
     });
 }
+
+// do import_at then lifter time

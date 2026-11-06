@@ -1,6 +1,5 @@
 use super::structs::{Function, Section};
 use anyhow::{Context, Error};
-use iced_x86::{Decoder, DecoderOptions, Instruction};
 
 use object::elf::{self};
 use object::{
@@ -9,7 +8,6 @@ use object::{
 };
 
 use gimli::{BaseAddresses, CieOrFde, EhFrame, LittleEndian, UnwindSection};
-use std::collections::HashMap;
 
 
 fn parse_fn_eh_frame(eh: &Section, data: &[u8]) -> Result<Vec<Function>, Error> {
